@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+<!--    <meta name="referrer" content="no-referrer"/>-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+
+<body>
+    <div id="app">
+        <nav>
+            <div id="nav" class="nav-wrapper">
+                <div class="container">
+                    <input id="searchKeyword" placeholder="Input to search..." type="text" @keydown.enter="fetchData" v-model="searchKeyword">
+                    <ul class="right">
+                        <li><a @click="fetchData"><i class="material-icons">search</i></a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <p v-show="this.searchedKeyword != '' ">Search Results for "{{searchedKeyword}}"</p>
+            <ul id="mainboard">
+                <li v-for="item in searchResults">
+                    <img :src=item.coverUrl>
+                    <div class="titles">
+                        <div class="mediatitle">
+                            <p class="cntitle">{{item.cnTitle}}</p>
+                            <p class="entitle">{{item.enTitle}}</p>
+                        </div>
+                        <p class="ensub">{{item.enSub}}</p>
+                        <p class="cnsub">{{item.cnSub}}</p>
+                    </div>
+                </li>
+            </ul>
+            <p id="noMoreData" v-if="this.reachEnd">没有更多数据啦</p>
+        </div>
+    </div>
+
+    <style>
+        #nav {
+            background-color: #181818;
+        }
+        #searchKeyword{
+            display: inline-block;
+            color:white;
+            width: 85%;
+            font-size: 1.3em;
+            outline-style: none ;
+            border:none;
+        }
+        #searchKeyword::placeholder {
+            color: #707070;
+            font-style:oblique;
+            font-size: 1.3em;
+        }
+
+        #mainboard li .titles{
+            margin-left: 8px;
+            display: inline-block;
+            vertical-align: top;
+        }
+        #mainboard li{
+            margin-top:8px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+        #mainboard li:first-child{
+            border-top: none;
+        }
+        #mainboard li img{
+            width:46px;
+            height: 69px;
+            /*background-size: cover;*/
+            object-fit: cover;
+        }
+        #mainboard p{
+            /*border: 1px solid red;*/
+            margin: 0px;
+            text-overflow: ellipsis
+        }
+
+        #mainboard .mediatitle p{
+            display: inline-block;
+        }
+        #mainboard .cntitle{
+            font-size: 18px;
+            color: #505050;
+            font-weight:bold;
+            margin-right: 8px;
+        }
+        #mainboard .entitle{
+            font-size: 14px;
+            color: #8D8D8D;
+            font-style:oblique;
+        }
+        #mainboard .cnsub{
+            font-size: 14px;
+            color: #707070;
+        }
+        #mainboard .ensub{
+            font-size: 14px;
+            color: #707070;
+        }
+        #mainboard .target{
+            color:red;
+        }
+
+        #noMoreData{
+            text-align: center;
+            font-size: 14px;
+            color: #707070;
+        }
+    </style>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script>
+        const watchExampleVM = Vue.createApp({
+            data() {
+                return {
+                    searchKeyword: "",
+                    searchedKeyword: "",
+                    reachEnd: false,
+                    page: 0,
+                    searchResults: [{
+                        cnTitle: "权力的游戏",
+                        enTitle: "Game of Thrones",
+                        coverUrl: "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2551395076.webp",
+                        enSub: "Everyone who isn't us is an enemy.",
+                        cnSub: "瑟曦·兰尼斯特：权力之争，非我即敌。",
+                    }]
+                }
+            },
+            methods: {
+                fetchData() {
+                    console.log('start fetching data')
+                    this.page=0
+                    this.reachEnd=false
+                    axios
+                        .get('http://127.0.0.1:8000/subtitles/'+this.searchKeyword+'?page='+this.page)
+                        .then(response => {
+                            this.searchResults = response.data
+                            this.searchedKeyword = this.searchKeyword
+                        })
+                        .catch(error => {
+                            this.name = '错误! 无法访问 API。 ' + error
+                        })
+                },
+                scroll() {
+                    let isLoading = false
+                    window.onscroll = () => {
+                        // 距离底部200px时加载一次
+                        let bottomOfWindow = document.documentElement.offsetHeight - document.documentElement.scrollTop - window.innerHeight <= 200
+                        if (bottomOfWindow && isLoading == false && this.reachEnd==false) {
+                            isLoading = true
+                            this.page += 1
+                            axios.get('http://127.0.0.1:8000/subtitles/'+this.searchKeyword+'?page='+this.page).then(response => {
+                                this.searchResults = this.searchResults.concat(response.data)
+                                isLoading = false
+                                if(response.data.length==0){
+                                    this.reachEnd = true
+                                }
+                            })
+                            .catch(error => {
+                                console.log('Something went wrong')
+                            })
+                        }
+                    }
+                }
+            },
+            mounted() {
+                this.scroll()
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
