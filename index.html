@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="referrer" content="no-referrer"/>
+    <title>Hailing's Subtitles</title>
+    <link rel="shortcut icon" type="image/png" href="./img/favicon.png"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -142,12 +144,15 @@
         #mainboard .cnsub{
             font-size: 14px;
             color: #707070;
-            width:600px;
+            white-space: nowrap;
+            width:850px;
         }
         #mainboard .ensub{
             font-size: 14px;
             color: #707070;
-            width:600px;
+            white-space: nowrap;
+            width:850px;
+
         }
         #mainboard .target{
             color:red;
@@ -162,7 +167,7 @@
 
         /* Hover Modal*/
         .triangle{
-            width: 800px;
+            width: 900px;
             height: 335px;
             margin-top: 50px;
             margin-left: 50px;
@@ -226,7 +231,7 @@
             list-style: none;
             vertical-align: top;
             background-color: #FAFAFA;
-            width:745px;
+            width:845px;
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
@@ -250,7 +255,6 @@
         .targetSubtitle div.subtitles{
             color:white;
             background-color: #DF6740;
-            width:745px;
         }
 
     </style>
@@ -279,7 +283,9 @@
                         cnSub: "",
                         enSub: "",
                     }],
-                    displayHover:false
+                    displayHover:false,
+                    serverName:"http://subtitles.fenghailing.com/api",
+                    // serverName:"http://127.0.0.1:8000/api",
                 }
             },
             methods: {
@@ -289,7 +295,7 @@
                     this.reachEnd=false
                     this.displayHover = false
                     axios
-                        .get('http://127.0.0.1:8000/subtitles/'+this.searchKeyword+'?page='+this.page)
+                        .get(this.serverName + '/subtitles/'+this.searchKeyword+'?page='+this.page)
                         .then(response => {
                             this.searchResults = response.data
                             this.searchedKeyword = this.searchKeyword
@@ -306,7 +312,7 @@
                         if (bottomOfWindow && isLoading == false && this.reachEnd==false) {
                             isLoading = true
                             this.page += 1
-                            axios.get('http://127.0.0.1:8000/subtitles/'+this.searchKeyword+'?page='+this.page).then(response => {
+                            axios.get(this.serverName + '/subtitles/'+this.searchKeyword+'?page='+this.page).then(response => {
                                 this.searchResults = this.searchResults.concat(response.data)
                                 isLoading = false
                                 if(response.data.length==0){
@@ -328,7 +334,7 @@
                     this.hoverEntitle = enTitle
                     this.hoverCntitle= cntitle
                     this.hoverSubId = subID
-                    axios.get('http://127.0.0.1:8000/subtitles?media_id='+mediaId+'&sub_id='+subID)
+                    axios.get(this.serverName + '/subtitles?media_id='+mediaId+'&sub_id='+subID)
                         .then(response => {
                             console.log(response.data)
                             this.hoverResults = response.data
