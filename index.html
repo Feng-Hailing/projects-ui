@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-<!--    <meta name="referrer" content="no-referrer"/>-->
+    <meta name="referrer" content="no-referrer"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -15,17 +15,38 @@
         <nav>
             <div id="nav" class="nav-wrapper">
                 <div class="container">
-                    <input id="searchKeyword" placeholder="Input to search..." type="text" @keydown.enter="fetchData" v-model="searchKeyword">
+                    <input id="searchKeyword" placeholder="Type to search..." type="text" @keydown.enter="fetchData" v-model="searchKeyword">
                     <ul class="right">
                         <li><a @click="fetchData"><i class="material-icons">search</i></a></li>
                     </ul>
                 </div>
             </div>
         </nav>
+        <div id="emptyImg" v-show="this.searchedKeyword == ''">
+                <img src="img/empty.png">
+        </div>
         <div class="container">
             <p v-show="this.searchedKeyword != '' ">Search Results for "{{searchedKeyword}}"</p>
-            <ul id="mainboard">
-                <li v-for="item in searchResults">
+            <div class="triangle" @click.prevent="closeModal" v-show="displayHover" ref="subModal">
+                <div class="htitles">
+                    <div class="hmediatitle">
+                        <p class="hcntitle">{{hoverCntitle}}</p>
+                        <p class="hentitle">{{hoverEntitle}}</p>
+                    </div>
+                    <ul>
+                        <li v-for="item in hoverResults"  v-bind:class="{'targetSubtitle': item.subID == hoverSubId}">
+                            <div class="decreator"></div>
+                            <div class="subtitles">
+                                <p class="hensub">{{item.enSub}}</p>
+                                <p class="hcnsub">{{item.cnSub}}</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+            <ul id="mainboard" v-show="this.searchedKeyword != ''" @click.stop>
+                <li v-for="(item, index) in searchResults" @click="mouseOver($event, item.mediaID, item.subID, item.enTitle, item.cnTitle, index)" >
                     <img :src=item.coverUrl>
                     <div class="titles">
                         <div class="mediatitle">
@@ -42,6 +63,11 @@
     </div>
 
     <style>
+        body{
+            min-width: 950px;
+            overflow: auto;
+        }
+        /*Nav Bar*/
         #nav {
             background-color: #181818;
         }
@@ -59,33 +85,24 @@
             font-size: 1.3em;
         }
 
+        /* Empty Image*/
+        #emptyImg{
+            margin-top: 5px;
+            text-align: center;
+            alignment: center;
+            align:center;
+        }
+
+        /*Titles*/
         #mainboard li .titles{
             margin-left: 8px;
             display: inline-block;
             vertical-align: top;
         }
-        #mainboard li{
-            margin-top:8px;
-            padding-top: 12px;
-            border-top: 1px solid #e0e0e0;
-        }
-        #mainboard li:first-child{
-            border-top: none;
-        }
-        #mainboard li img{
-            width:46px;
-            height: 69px;
-            /*background-size: cover;*/
-            object-fit: cover;
-        }
-        #mainboard p{
-            /*border: 1px solid red;*/
-            margin: 0px;
-            text-overflow: ellipsis
-        }
-
         #mainboard .mediatitle p{
             display: inline-block;
+            line-height: 18px;
+            height: 18px;
         }
         #mainboard .cntitle{
             font-size: 18px;
@@ -98,40 +115,171 @@
             color: #8D8D8D;
             font-style:oblique;
         }
+
+        /*Subtitles List*/
+        #mainboard li{
+            margin-top:8px;
+            padding-top: 12px;
+            height: 90px;
+            border-top: 1px solid #e0e0e0;
+        }
+        #mainboard li:first-child{
+            border-top: none;
+        }
+        #mainboard li img{
+            width:46px;
+            height: 69px;
+            object-fit: cover;
+        }
+
+        /*Cn & En Subtitles*/
+        #mainboard p{
+            margin: 0px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow:hidden;
+        }
         #mainboard .cnsub{
             font-size: 14px;
             color: #707070;
+            width:600px;
         }
         #mainboard .ensub{
             font-size: 14px;
             color: #707070;
+            width:600px;
         }
         #mainboard .target{
             color:red;
         }
 
+        /*No More Data*/
         #noMoreData{
             text-align: center;
             font-size: 14px;
             color: #707070;
         }
+
+        /* Hover Modal*/
+        .triangle{
+            width: 800px;
+            height: 335px;
+            margin-top: 50px;
+            margin-left: 50px;
+            border-radius: 20px;
+            filter: drop-shadow(0 10px 20px #909090);
+            background-color: #fff;
+            position: absolute;
+            z-index: 1;
+        }
+        .triangle:after{
+            content: "";
+            position: absolute;
+            left: 100px;
+            top: -10px;
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            transform: rotate(45deg);
+            border-top-left-radius: 5px;
+        }
+
+        /* Hover Title*/
+        .htitles{
+            padding-top: 10px;
+            padding-left: 20px;
+        }
+        .hmediatitle{
+            padding: 0px;
+            margin: 0px;
+            line-height: 0px;
+        }
+        .htitles .hcntitle{
+            display: inline-block;
+            font-size: 18px;
+            color: #505050;
+            font-weight:bold;
+            margin-right: 8px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+        .htitles .hentitle{
+            display: inline-block;
+            font-size: 14px;
+            color: #8D8D8D;
+            font-style:oblique;
+        }
+
+        /* Hover Subtitles*/
+        .triangle ul{
+            padding:0px;
+            margin: 8px 0px 0px 0px;
+        }
+        .triangle li {
+            list-style: none;
+            margin-bottom: 8px;
+        }
+        .triangle li .subtitles{
+            display: inline-block;
+            margin-left: 8px;
+            padding-left: 8px;
+            list-style: none;
+            vertical-align: top;
+            background-color: #FAFAFA;
+            width:745px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            height:44px;
+        }
+        .triangle li .subtitles p{
+            font-size: 14px;
+            list-style: none;
+            padding: 0px;
+            margin: 0px;
+        }
+        .decreator{
+            height:44px;
+            width:4px;
+            background-color:#FAE8E2;
+            display: inline-block;
+        }
+        .targetSubtitle .decreator{
+            background-color: #DF6740;
+        }
+        .targetSubtitle div.subtitles{
+            color:white;
+            background-color: #DF6740;
+            width:745px;
+        }
+
     </style>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script>
-        const watchExampleVM = Vue.createApp({
+        const VM = Vue.createApp({
             data() {
                 return {
+                    page: 0,
                     searchKeyword: "",
                     searchedKeyword: "",
-                    reachEnd: false,
-                    page: 0,
                     searchResults: [{
-                        cnTitle: "权力的游戏",
-                        enTitle: "Game of Thrones",
-                        coverUrl: "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2551395076.webp",
-                        enSub: "Everyone who isn't us is an enemy.",
-                        cnSub: "瑟曦·兰尼斯特：权力之争，非我即敌。",
-                    }]
+                        cnTitle: "asd",
+                        enTitle: "",
+                        coverUrl: "",
+                        enSub: "",
+                        cnSub: "",
+                        mediaID: 0,
+                        subID: 0,
+                    }],
+                    reachEnd: false,
+                    hoverCnTitle: "",
+                    hoverEntitle: "",
+                    hoverSubId: 0,
+                    hoverResults: [{
+                        cnSub: "",
+                        enSub: "",
+                    }],
+                    displayHover:false
                 }
             },
             methods: {
@@ -139,6 +287,7 @@
                     console.log('start fetching data')
                     this.page=0
                     this.reachEnd=false
+                    this.displayHover = false
                     axios
                         .get('http://127.0.0.1:8000/subtitles/'+this.searchKeyword+'?page='+this.page)
                         .then(response => {
@@ -169,11 +318,37 @@
                             })
                         }
                     }
-                }
+                },
+                mouseOver(event, mediaId, subID, enTitle, cntitle, liIndex) {
+                    let subModal = this.$refs.subModal
+                    listHeight = 98
+                    topOffset = 155
+                    subModal.style.top = (listHeight*liIndex + topOffset).toString() + 'px'
+                    this.displayHover = true
+                    this.hoverEntitle = enTitle
+                    this.hoverCntitle= cntitle
+                    this.hoverSubId = subID
+                    axios.get('http://127.0.0.1:8000/subtitles?media_id='+mediaId+'&sub_id='+subID)
+                        .then(response => {
+                            console.log(response.data)
+                            this.hoverResults = response.data
+                        })
+                        .catch(error => {
+                            this.name = '错误! 无法访问 API。 ' + error
+                        })
+                },
+                closeModal(){
+                    this.displayHover = false;
+                },
+
             },
             mounted() {
                 this.scroll()
-            }
+                document.addEventListener("click", this.closeModal);
+            },
+            beforeDestroy() {
+                document.removeEventListener("click", this.closeModal);
+            },
         }).mount('#app')
     </script>
 </body>
