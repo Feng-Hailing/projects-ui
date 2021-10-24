@@ -12,23 +12,39 @@
     <script src="https://unpkg.com/vue@next"></script>
 </head>
 
-<body>
+<body >
     <div id="app">
-        <nav>
-            <div id="nav" class="nav-wrapper">
-                <div class="container">
-                    <input id="searchKeyword" placeholder="Type to search..." type="text" @keydown.enter="fetchData" v-model="searchKeyword">
-                    <ul class="right">
-                        <li><a @click="fetchData"><i class="material-icons">search</i></a></li>
-                    </ul>
+        <!-- Top Pannel -->
+        <div class="toppane">
+            <nav>
+                <div id="nav">
+                <input id="searchKeyword" placeholder="Type to search..." type="text" @keydown.enter="fetchData" v-model="searchKeyword">
+                <!-- <a @click="fetchData"><i class="material-icons">search</i></a> -->
                 </div>
-            </div>
-        </nav>
-        <div id="emptyImg" v-show="this.searchedKeyword == ''">
-                <img src="img/empty.png">
+            </nav>
         </div>
-        <div class="container">
-            <p v-show="this.searchedKeyword != '' ">Search Results for "{{searchedKeyword}}"</p>
+
+        <!-- Left Pannel -->
+        <div class="leftpane"></div>
+
+        <!-- Main Pannel -->
+        <div  class="middlepane">
+            <div id="emptyImg" v-show="this.searchedKeyword == ''"><img src="img/empty.png"></div>
+            <p v-show="this.searchedKeyword != '' " id="searchResultHint">Search Results for "{{searchedKeyword}}"</p>
+            <ul id="mainboard" v-show="this.searchedKeyword != ''" @click.stop>
+                <li v-for="(item, index) in searchResults" @click="mouseOver($event, item.mediaID, item.subID, item.enTitle, item.cnTitle, index)" >
+                    <img :src=item.coverUrl>
+                    <div class="titles">
+                        <div class="mediatitle">
+                            <p class="cntitle">{{item.cnTitle}}</p>
+                            <p class="entitle">{{item.enTitle}}</p>
+                        </div>
+                        <p class="ensub">{{item.enSub}}</p>
+                        <p class="cnsub">{{item.cnSub}}</p>
+                    </div>
+                </li>
+            </ul>
+
             <div class="triangle" @click.prevent="closeModal" v-show="displayHover" ref="subModal">
                 <div class="htitles">
                     <div class="hmediatitle">
@@ -45,38 +61,64 @@
                         </li>
                     </ul>
                 </div>
-
             </div>
-            <ul id="mainboard" v-show="this.searchedKeyword != ''" @click.stop>
-                <li v-for="(item, index) in searchResults" @click="mouseOver($event, item.mediaID, item.subID, item.enTitle, item.cnTitle, index)" >
-                    <img :src=item.coverUrl>
-                    <div class="titles">
-                        <div class="mediatitle">
-                            <p class="cntitle">{{item.cnTitle}}</p>
-                            <p class="entitle">{{item.enTitle}}</p>
-                        </div>
-                        <p class="ensub">{{item.enSub}}</p>
-                        <p class="cnsub">{{item.cnSub}}</p>
-                    </div>
-                </li>
-            </ul>
+
             <p id="noMoreData" v-if="this.reachEnd">没有更多数据啦</p>
         </div>
+
+        <!-- Right Pannel -->
+        <div class="rightpane"> </div>
     </div>
 
     <style>
-        body{
-            min-width: 950px;
-            overflow: auto;
+        /* Layout */
+        body, html, #app {
+          min-width: 1200px;
+          width: 100%;
+          height: 100%;
+          margin: 0;
         }
+        .leftpane {
+            width: 10%;
+            height: 100%;
+            float: left;
+            border-collapse: collapse;
+        }
+        .middlepane {
+            width: 80%;
+            height: 100%;
+            float: left;
+            border-collapse: collapse;
+        }
+        .rightpane {
+          width: 10%;
+          height: 100%;
+          position: relative;
+          float: right;
+          border-collapse: collapse;
+        }
+        .toppane {
+          width: 100%;
+          height: 64px;
+          border-collapse: collapse;
+          background-color: #4da6ff;
+        }
+        
         /*Nav Bar*/
         #nav {
+            padding-left: 10%;
+            padding-right: 10%;
             background-color: #181818;
+            filter: drop-shadow(0 0x 4px #181818);
+            -webkit-filter: drop-shadow(0 0px 4px #181818);
+            transform: translateZ(0);
         }
         #searchKeyword{
             display: inline-block;
+            line-height: 64px;
             color:white;
-            width: 85%;
+            background-color: #181818;
+            width: 100%;
             font-size: 1.3em;
             outline-style: none ;
             border:none;
@@ -85,6 +127,9 @@
             color: #707070;
             font-style:oblique;
             font-size: 1.3em;
+        }
+        #searchResultHint{
+            font-size: 16px;
         }
 
         /* Empty Image*/
@@ -96,6 +141,29 @@
         }
 
         /*Titles*/
+        ul#mainboard{
+            padding: 0px;
+        }
+        #mainboard li{
+            list-style: none;
+            padding-top: 17px;
+            margin-top: 18px;
+            border-top: 1px solid #e0e0e0;
+            height: 90px;
+        }
+        #mainboard li:first-child{
+            border-top: 0px;
+            margin-top: 0px;
+            padding-top: 0px;
+        }
+        #mainboard li:nth-child(2){
+            margin-top: 0px;
+        }
+        #mainboard li img{
+            width:50px;
+            height: 72px;
+            object-fit: cover;
+        }
         #mainboard li .titles{
             margin-left: 8px;
             display: inline-block;
@@ -107,32 +175,17 @@
             height: 18px;
         }
         #mainboard .cntitle{
-            font-size: 18px;
+            font-size: 20px;
             color: #505050;
             font-weight:bold;
             margin-right: 8px;
         }
         #mainboard .entitle{
-            font-size: 14px;
+            font-size: 20px;
             color: #8D8D8D;
             font-style:oblique;
         }
 
-        /*Subtitles List*/
-        #mainboard li{
-            margin-top:8px;
-            padding-top: 12px;
-            height: 90px;
-            border-top: 1px solid #e0e0e0;
-        }
-        #mainboard li:first-child{
-            border-top: none;
-        }
-        #mainboard li img{
-            width:46px;
-            height: 69px;
-            object-fit: cover;
-        }
 
         /*Cn & En Subtitles*/
         #mainboard p{
@@ -141,18 +194,17 @@
             text-overflow: ellipsis;
             overflow:hidden;
         }
-        #mainboard .cnsub{
-            font-size: 14px;
-            color: #707070;
-            white-space: nowrap;
-            width:850px;
-        }
         #mainboard .ensub{
-            font-size: 14px;
+            font-size: 18px;
             color: #707070;
             white-space: nowrap;
-            width:850px;
-
+            width:900px;
+        }
+        #mainboard .cnsub{
+            font-size: 18px;
+            color: #707070;
+            white-space: nowrap;
+            width:900px;
         }
         #mainboard .target{
             color:red;
@@ -167,12 +219,14 @@
 
         /* Hover Modal*/
         .triangle{
-            width: 900px;
+            width: 955px;
             height: 335px;
             margin-top: 50px;
             margin-left: 50px;
             border-radius: 20px;
             filter: drop-shadow(0 10px 20px #909090);
+            -webkit-filter: drop-shadow(0 10px 20px #909090);
+            transform: translateZ(0);
             background-color: #fff;
             position: absolute;
             z-index: 1;
@@ -231,7 +285,7 @@
             list-style: none;
             vertical-align: top;
             background-color: #FAFAFA;
-            width:845px;
+            width:900px;
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
@@ -256,7 +310,6 @@
             color:white;
             background-color: #DF6740;
         }
-
     </style>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script>
@@ -267,7 +320,7 @@
                     searchKeyword: "",
                     searchedKeyword: "",
                     searchResults: [{
-                        cnTitle: "asd",
+                        cnTitle: "",
                         enTitle: "",
                         coverUrl: "",
                         enSub: "",
@@ -285,7 +338,7 @@
                     }],
                     displayHover:false,
                     serverName:"https://subtitles.fenghailing.com/api",
-                    serverName:"http://127.0.0.1:8000/api",
+                    // serverName:"http://127.0.0.1:8000/api",
                 }
             },
             methods: {
@@ -327,8 +380,8 @@
                 },
                 mouseOver(event, mediaId, subID, enTitle, cntitle, liIndex) {
                     let subModal = this.$refs.subModal
-                    listHeight = 98
-                    topOffset = 155
+                    listHeight = 108
+                    topOffset = 135
                     subModal.style.top = (listHeight*liIndex + topOffset).toString() + 'px'
                     this.displayHover = true
                     this.hoverEntitle = enTitle
